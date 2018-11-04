@@ -49,6 +49,10 @@ let avocatSchema = new mongoose.Schema({
   activated: {
     type: Boolean,
     required: true
+  },
+  approved: {
+    type: Boolean,
+    required: true
   }
 })
 
