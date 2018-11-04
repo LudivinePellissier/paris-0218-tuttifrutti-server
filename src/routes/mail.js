@@ -4,8 +4,8 @@ const transporter = nodemailer.createTransport({
   host: 'smtp.ethereal.email',
   port: 587,
   auth: {
-    user: process.env.NODEMAILER_USER || 'vbkawgch3kkkhqax@ethereal.email',
-    pass: process.env.NODEMAILER_PASS || 'bVWMcjVnQenkaJsGz4'
+    user: process.env.NODEMAILER_USER || 'k72vvxjbxgant5cx@ethereal.email',
+    pass: process.env.NODEMAILER_PASS || 'qbty81P36CAyghm2Ju'
   }
 })
 
@@ -45,7 +45,7 @@ const STUDENT_MISSION_WITH_LINK_PROPOSAL = (mission, link) => ({
     Bonjour,
 
     Une nouvelle mission est disponible en ${mission.field}
-    La description de la mission est la suivante:
+    La mission est la suivante:
     ${mission.description}
 
     ${link}
@@ -56,7 +56,7 @@ const STUDENT_MISSION_WITH_LINK_PROPOSAL = (mission, link) => ({
   html: htmlLayout(`
     <p>Bonjour,</p>
     <p>Une nouvelle mission est disponible en ${mission.field}</p>
-    <p>La description de la mission est la suivante :<br />${mission.description}</p>
+    <p>La mission est la suivante :<br />${mission.description}</p>
     <a href="${link}" target="_blank">
       <button>Accepter la mission</button>
     </a>
@@ -229,7 +229,6 @@ const LAWYER_REPORT_PROBLEM_TO_ADMIN = (missionId, student, message) => ({
     ${message.description}</p>
   `)
 })
-
 
 const send = (options) => {
   const mailOptions = {

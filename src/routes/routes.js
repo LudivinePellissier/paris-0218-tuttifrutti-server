@@ -17,6 +17,8 @@ const hostUrl = process.env.HOST_URL || 'http://localhost:3000'
 const jwtSecret = process.env.JWT_SECRET || 'MAKEITUNUVERSAL'
 const LITTA_ADMIN_EMAIL = process.env.LITTA_ADMIN_EMAIL || 'admin@litta.fr'
 
+
+
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     cb(null, 'tmp/')
@@ -216,6 +218,9 @@ router.post('/login', async (req, res, next) => {
   if (user === null) {
     return res.json('auth failed')
   }
+  if (user.approved === false) {
+    return res.json('not approved')
+  }
   if (user.activated === false) {
     return res.json('not verified')
   } else {
@@ -374,7 +379,7 @@ router.post('/missions', function (req, res, next) {
     .then(() => res.json(newMission))
     .then(async () => {
       const students = await StudentModel.find()
-      const concernedStudents = students.filter(student => student.field === mission.field)
+      const concernedStudents = students.filter(student => (student.field === mission.field) && (student.approved === true) && (student.activated === true))
 
       console.log(`Number of potential students: ${concernedStudents.length}`)
 
@@ -447,6 +452,19 @@ router.post('/missions/:missionId/sendmessage', async (req, res, next) => {
     .catch(next)
 })
 
+// CHANGE STATUS OF MISSION TO FINISHED
+
+router.put('/missions/:missionId/status', (req, res, next) => {
+
+  const status = req.body
+  console.log(status)
+
+  MissionModel
+    .findByIdAndUpdate(req.params.missionId, { $set: status })
+    .then((changedStatus) => res.json(changedStatus))
+    .catch(next)
+})
+
 // DELETE ONE MISSION
 router.delete('/missions/:missionId', (req, res, next) => {
   MissionModel
@@ -512,6 +530,18 @@ router.get('/alllawyers', (req, res, next) => {
     .then(users => res.json(users))
     .catch(next)
 });
+
+// CHANGE STATUS OF A LAWYER
+
+router.post('/alllawyers', async (req, res, next) => {
+  console.log(req.body)
+  const update = req.body.user
+  console.log(update)
+  await AvocatModel.findByIdAndUpdate(update._id,
+    { $set: update })
+    .then((user) => res.json(user))
+    .catch(next)
+})
 
 
 // GET ALL STUDENTS
