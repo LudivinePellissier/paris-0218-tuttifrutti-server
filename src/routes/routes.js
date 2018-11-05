@@ -543,6 +543,13 @@ router.post('/alllawyers', async (req, res, next) => {
     .catch(next)
 })
 
+// DELETE ONE LAWYER
+router.delete('/alllawyers/:lawyerId', (req, res, next) => {
+  AvocatModel
+    .findByIdAndRemove(req.params.lawyerId)
+    .then(() => res.json('ok'))
+    .catch(next)
+})
 
 // GET ALL STUDENTS
 
@@ -563,6 +570,16 @@ router.post('/allstudents', async (req, res, next) => {
     .then((user) => res.json(user))
     .catch(next)
 })
+
+
+// DELETE ONE STUDENT
+router.delete('/allstudents/:studentId', (req, res, next) => {
+  StudentModel
+    .findByIdAndRemove(req.params.studentId)
+    .then(() => res.json('ok'))
+    .catch(next)
+})
+
 
 // router.post('/allstudents', async(req, res, next) => {
 //    console.log(req.body)
