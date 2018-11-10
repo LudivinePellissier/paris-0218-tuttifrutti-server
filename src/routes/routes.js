@@ -415,6 +415,15 @@ router.post('/missionsfiltered', (req, res, next) => {
     .catch(next)
 })
 
+// GET ALL MISSIONS ADMIN PART
+
+router.get('/allmissions', (req, res, next) => {
+  MissionModel
+    .find()
+    .then(missions => res.json(missions))
+    .catch(next)
+})
+
 // GET ONE CURRENT MISSION
 router.get('/missions/:missionId', (req, res, next) => {
   MissionModel
@@ -529,7 +538,18 @@ router.get('/alllawyers', (req, res, next) => {
     .find()
     .then(users => res.json(users))
     .catch(next)
-});
+})
+
+// GET ONE LAWYER
+
+router.get('/getLawyerInfos/:lawyerId', (req, res, next) => {
+  const lawyerId = req.params.lawyerId
+  console.log(lawyerId)
+  AvocatModel
+    .findById({ _id: lawyerId })
+    .then(user => res.json({cabinet: user.cabinet}))
+    .catch(next)
+})
 
 // CHANGE STATUS OF A LAWYER
 
