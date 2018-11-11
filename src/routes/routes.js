@@ -188,27 +188,30 @@ router.post('/loginadmin', async (req, res) => {
 
 // POST Login Student / A VENIR
 
-// router.post('/loginstudent', async (req, res, next) => {
-//   const user = await StudentModel.findOne({email: req.body.creds.email})
-//   console.log(user)
-//   if (user === null) {
-//     return res.json('auth failed')
-//  }
-//  if (user.activated === false) {
-//    return res.json('not verified')
-//  } else {
-//    const isEqual = await bcrypt.compare(req.body.creds.password, user.password)
-//    if (isEqual) {
-//      const token = jwt.sign({
-//        id: user._id,
-//        username: user.email
-//      }, jwtSecret)
-//      return res.json({token})
-//    } else {
-//      return res.json('auth failed')
-//    }
-//  }
-// })
+router.post('/loginstudent', async (req, res, next) => {
+  const user = await StudentModel.findOne({email: req.body.creds.email})
+  console.log(user)
+  if (user === null) {
+    return res.json('auth failed')
+ }
+ if (user.activated === false) {
+   return res.json('not verified')
+ } 
+ if (user.approved === false) {
+  return res.json('not approved')
+} else {
+   const isEqual = await bcrypt.compare(req.body.creds.password, user.password)
+   if (isEqual) {
+     const token = jwt.sign({
+       id: user._id,
+       username: user.email
+     }, jwtSecret)
+     return res.json({token})
+   } else {
+     return res.json('auth failed')
+   }
+ }
+})
 
 // POST Login avocat
 
@@ -343,9 +346,45 @@ router.put('/infolawyer', async (req, res, next) => {
 
 // POST to get student info
 router.post('/infostudent', async (req, res, next) => {
-  await StudentModel.findOne({ _id: req.body.studentId })
+  await StudentModel.findOne({ _id: req.body.decoded.id })
+    .then(student => res.json(student))
+    .catch(next)
+})
+
+router.post('/studentfirstname', async (req, res, next) => {
+  await StudentModel.findOne({ _id: req.body.id })
     .then(student => res.json(student.firstName))
     .catch(next)
+})
+
+// EDIT STUDENT INFO
+router.put('/infostudent', async (req, res, next) => {
+  const update = req.body.user
+  console.log(update)
+
+  if (update.password && update.password !== '') {
+    console.log('password modifié', update)
+    update.password = await bcrypt.hash(update.password, 16)
+    console.log('password modifié apres crypt', update)
+
+    StudentModel.findByIdAndUpdate({
+      _id: update.id
+    }, { $set: update }).then((student) => res.json(student)).catch(next)
+  } else {
+    console.log('password pas modifié', update)
+    StudentModel.findByIdAndUpdate({
+      _id: update.id
+    }, {
+        $set: {
+          email: update.email,
+          firstName: update.firstName,
+          lastName: update.lastName
+        }
+      })
+      .then(student => console.log(student))
+      .then(student => res.json(student))
+      .catch(next)
+  }
 })
 
 
@@ -399,6 +438,7 @@ router.get('/accept/:mission/:uuid', async (req, res) => {
   await MissionModel.find(queryMission, async (err, result) => {
     if (result[0].student === '') {
       await MissionModel.findOneAndUpdate(queryMission, { student: queryStudent })
+      await StudentModel.findOneAndUpdate(queryStudent, { $push: { missions: queryMission } })
       res.send('Ok')
     } else {
       res.send('Not avalaible')
@@ -512,6 +552,36 @@ router.post('/oldmissionsfiltered', (req, res, next) => {
   .catch(next)
 })
 
+// GET OLD MISSIONS - STUDENT PART
+
+router.post('/student/oldmissionsfiltered', (req, res, next) => {
+  const student = req.body.studentId
+  MissionModel
+    .find()
+    .then(missions =>
+      missions.filter(mission => mission.finished === true)
+        .filter(mission => mission.student === student))
+    .then(oldmissions => Promise.all(
+      oldmissions.map(async mission => {
+        let lawyerCabinetName = ''
+        await AvocatModel
+          .findById({ _id: mission.author })
+          .then(id => {
+            lawyerCabinetName = id.cabinet
+          })
+        const oldmission = {
+          ...mission.toObject(),
+          cabinet: lawyerCabinetName
+        }
+        console.log(oldmission)
+        return oldmission
+      })
+    )
+  )
+  .then(oldmissions => res.json(oldmissions))
+  .catch(next)
+})
+
 // REPORT PROBLEM TO ADMIN
 router.post('/missions/:missionId/reportproblem', async (req, res, next) => {
   const messageContent = req.body.messageContent
@@ -597,6 +667,16 @@ router.delete('/allstudents/:studentId', (req, res, next) => {
   StudentModel
     .findByIdAndRemove(req.params.studentId)
     .then(() => res.json('ok'))
+    .catch(next)
+})
+
+// GET MISSIONS BY STUDENT ID
+
+router.post('/student/missionsfiltered', (req, res, next) => {
+  const student = req.body.studentId
+  MissionModel
+    .find()
+    .then(missions => res.json(missions.filter(mission => mission.finished === false).filter(mission => mission.student === student)))
     .catch(next)
 })
 
