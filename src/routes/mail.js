@@ -230,6 +230,38 @@ const LAWYER_REPORT_PROBLEM_TO_ADMIN = (missionId, student, message) => ({
   `)
 })
 
+const STUDENT_REPORT_PROBLEM_TO_ADMIN = (missionId, lawyer, message) => ({
+  subject: `Mission n°${missionId} / Report de problème`,
+  text: `
+    Admin,
+
+    Pour la mission n°${missionId}, l'étudiant ${message.firstName} ${message.lastName} souhaite reporter un problème rencontré durant sa collaboration avec le cabinet :
+    ${lawyer.cabinet}
+
+    Nature du problème :
+    ${message.problem}
+
+    Description :
+    ${message.description}
+  `,
+  html: htmlLayout(`
+    <p>Admin,</p>
+    <p>Pour la mission n°${missionId}, l'étudiant ${message.firstName} ${message.lastName} souhaite reporter un problème rencontré durant sa collaboration avec le cabinet :
+    <br>
+    <br/>
+    ${lawyer.cabinet}    
+    <br/>
+    <br/>
+    Nature du problème :
+    <br/>${message.problem}
+    <br/>
+    <br />
+    Description :
+    <br />
+    ${message.description}</p>
+  `)
+})
+
 const send = (options) => {
   const mailOptions = {
     from: 'tester@gmail.com',
@@ -254,6 +286,7 @@ module.exports = {
     LAWYER_ACCOUNT_CONFIRMATION,
     LAWYER_MESSAGE_TO_STUDENT,
     LAWYER_REPORT_PROBLEM_TO_ADMIN,
+    STUDENT_REPORT_PROBLEM_TO_ADMIN,
   },
   send,
 }

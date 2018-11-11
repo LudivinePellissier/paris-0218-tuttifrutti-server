@@ -347,7 +347,8 @@ router.put('/infolawyer', async (req, res, next) => {
 // POST to get student info
 router.post('/infostudent', async (req, res, next) => {
   await StudentModel.findOne({ _id: req.body.decoded.id })
-    .then(student => res.json(student))
+    .then(student => {console.log(student)
+      res.json(student)})
     .catch(next)
 })
 
@@ -378,7 +379,10 @@ router.put('/infostudent', async (req, res, next) => {
         $set: {
           email: update.email,
           firstName: update.firstName,
-          lastName: update.lastName
+          lastName: update.lastName,
+          phone: update.phone,
+          levelStudy: update.levelStudy,
+          field: update.field
         }
       })
       .then(student => console.log(student))
@@ -586,18 +590,35 @@ router.post('/student/oldmissionsfiltered', (req, res, next) => {
 router.post('/missions/:missionId/reportproblem', async (req, res, next) => {
   const messageContent = req.body.messageContent
   const missionId = messageContent.missionId.slice(-5)
+  console.log(messageContent)
 
-  StudentModel.findOne({ _id: req.body.messageContent.studentId })
+  if (messageContent.type === 'student_about_lawyer') {
+    AvocatModel.findOne({ _id: req.body.messageContent.lawyerId })
+    .then(lawyer => {
+      console.log(lawyer)
+      const options = {
+        to: LITTA_ADMIN_EMAIL,
+        ...mail.templates.STUDENT_REPORT_PROBLEM_TO_ADMIN(missionId, lawyer, messageContent)
+      }
+      
+      return mail.send(options)
+    })
+    .then(res.json("ok"))
+    .catch(next)
+  }
+  if (messageContent.type === 'lawyer_about_student') {
+    StudentModel.findOne({ _id: req.body.messageContent.studentId })
     .then(student => {
       const options = {
         to: LITTA_ADMIN_EMAIL,
         ...mail.templates.LAWYER_REPORT_PROBLEM_TO_ADMIN(missionId, student, messageContent)
       }
-
+      
       return mail.send(options)
     })
     .then(res.json("ok"))
     .catch(next)
+  }
 })
 
 
