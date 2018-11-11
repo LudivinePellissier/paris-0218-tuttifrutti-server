@@ -40,6 +40,9 @@ let studentSchema = new mongoose.Schema({
   approved: {
     type: Boolean,
     required: true
+  },
+  missions: {
+    type: Array
   }
 })
 
