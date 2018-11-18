@@ -1,6 +1,7 @@
 const express = require('express')
 const router = express.Router()
 const AvocatModel = require('../models/avocat.js')
+const FileModel = require('../models/file.js')
 const MissionModel = require('../models/mission.js')
 const StudentModel = require('../models/student.js')
 const AdminModel = require('../models/admin.js')
@@ -9,6 +10,7 @@ const jwt = require('jsonwebtoken')
 const nodemailer = require('nodemailer')
 const bodyParser = require('body-parser')
 const multer = require('multer')
+const fs = require('fs')
 // const uuidv4 = require('uuid/v4')
 // const path = require('path')
 const mail = require('./mail')
@@ -32,6 +34,7 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 5 * 10 ** 6 }, // 5mo
   fileFilter: function (req, file, cb) {
+    console.log(file)
     if (!file.originalname.toLowerCase().match(/\.(pdf|jpeg|jpg|doc|docx)$/)) {
       return cb(Error('.pdf, .doc/docx, .jpg/jpeg uniquement'))
     }
@@ -45,11 +48,23 @@ const upload = multer({
 router.use(bodyParser.json())
 router.use(bodyParser.urlencoded({ extended: true }))
 
+
+
 // Upload  de fichier
-router.post('/upload', upload.single('selectedFile'), (req, res) => {
-  // console.dir(res, { depth: 0 })
-  res.send({ result: 'ok' })
+router.post('/upload', upload.single('selectedFile'), async (req, res) => {
+  console.log(req.file)
+  const newFile = new FileModel()
+  let newFileId = ''
+  newFile.file.data = fs.readFileSync(req.file.path)
+  newFile.file.contentType = req.file.mimetype
+  newFile.file.name = req.file.filename
+  newFile.save(async (err, file) => {
+    newFileId = await file._id
+    res.send({ result: 'ok', fileId: newFileId })
+  })
 })
+
+
 
 // Handle any other errors
 router.use(function (err, req, res, next) {
@@ -479,10 +494,11 @@ router.get('/missions/:missionId', (req, res, next) => {
 // EDIT ONE MISSION WITH FILES SENDED NAMES
 router.put('/missions/:missionId', (req, res, next) => {
 
+  const id = req.body.fileId
   const name = req.body.fileName
 
   MissionModel
-    .findByIdAndUpdate(req.params.missionId, { $push: { filesSended: name } })
+    .findByIdAndUpdate(req.params.missionId, { $push: { filesSended: {name, id} } })
     .then((names) => res.json(names))
     .catch(next)
 })
