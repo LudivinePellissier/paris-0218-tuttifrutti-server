@@ -34,9 +34,12 @@ let missionSchema = new mongoose.Schema({
   finished: {
     type: Boolean
   },
-  filesSended: {
+  filesFromLawyer: {
     type: Array
-  } 
+  },
+  filesFromStudent: {
+    type: Array
+  }
 })
 
 module.exports = mongoose.model('Mission', missionSchema)

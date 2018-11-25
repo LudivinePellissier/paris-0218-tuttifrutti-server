@@ -35,8 +35,8 @@ const upload = multer({
   limits: { fileSize: 5 * 10 ** 6 }, // 5mo
   fileFilter: function (req, file, cb) {
     console.log(file)
-    if (!file.originalname.toLowerCase().match(/\.(pdf|jpeg|jpg|doc|docx)$/)) {
-      return cb(Error('.pdf, .doc/docx, .jpg/jpeg uniquement'))
+    if (!file.originalname.toLowerCase().match(/\.(pdf|jpeg|jpg|doc|docx|odt)$/)) {
+      return cb(Error('.pdf, .doc/docx, .odt, .jpg/jpeg uniquement'))
     }
     cb(null, true)
   }
@@ -50,7 +50,7 @@ router.use(bodyParser.urlencoded({ extended: true }))
 
 
 
-// Upload  de fichier
+// Upload  de fichier by lawyer
 router.post('/upload', upload.single('selectedFile'), async (req, res) => {
   console.log(req.file)
   const newFile = new FileModel()
@@ -506,17 +506,28 @@ router.get('/missions/:missionId', (req, res, next) => {
 // EDIT ONE MISSION WITH FILES SENDED NAMES
 router.put('/missions/:missionId', (req, res, next) => {
 
-  const id = req.body.fileId
-  const name = req.body.fileName
+  const fileId = req.body.fileId
+  const fileName = req.body.fileName
+  const userType = req.body.userType
+
+  const pushFileSendedInfos = (type, name, id) => {
+    if (type === 'lawyer') {
+      return  { $push: { filesFromLawyer: {name, id} }}
+    } else if (type === 'student') {
+      return { $push: { filesFromStudent: {name, id} }}
+    }
+  }
 
   MissionModel
-    .findByIdAndUpdate(req.params.missionId, { $push: { filesSended: {name, id} } })
-    .then((names) => res.json(names))
+    .findByIdAndUpdate(req.params.missionId, pushFileSendedInfos(userType, fileName, fileId))
+    .then(() => {
+      res.end()
+    })
     .catch(next)
 })
 
 // SEND MESSAGE TO STUDENT
-router.post('/missions/:missionId/sendmessage', async (req, res, next) => {
+router.post('/missions/:missionId/sendmessagetostudent', async (req, res, next) => {
   const messageContent = req.body.messageContent
   const missionId = messageContent.missionId.slice(-5)
 
@@ -525,6 +536,25 @@ router.post('/missions/:missionId/sendmessage', async (req, res, next) => {
       const options = {
         to: LITTA_ADMIN_EMAIL,
         ...mail.templates.LAWYER_MESSAGE_TO_STUDENT(missionId, student, messageContent)
+      }
+
+      return mail.send(options)
+    })
+    .then(res.json("ok"))
+    .catch(next)
+})
+
+// SEND MESSAGE TO LAWYER
+router.post('/missions/:missionId/sendmessagetolawyer', async (req, res, next) => {
+  const messageContent = req.body.messageContent
+  const missionId = messageContent.missionId.slice(-5)
+
+  AvocatModel.findOne({ _id: messageContent.lawyerId })
+    .then(lawyer => {
+      console.log(lawyer)
+      const options = {
+        to: LITTA_ADMIN_EMAIL,
+        ...mail.templates.STUDENT_MESSAGE_TO_LAWYER(missionId, lawyer, messageContent)
       }
 
       return mail.send(options)
