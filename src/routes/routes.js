@@ -76,6 +76,18 @@ router.use(function (err, req, res, next) {
   next(err)
 })
 
+// GET FILE FROM DB
+router.post('/download', async (req, res, next) => {
+  console.log(req.body)
+  FileModel.findOne({ _id: req.body.id}, (err, file) => {
+    console.log(file)
+    res.set('Content-Type', file.file.contentType)
+    res.send(file.file)
+  })
+})
+
+
+
 // POST Registration Admin
 
 router.post('/signupadmin', async (req, res, next) => {
