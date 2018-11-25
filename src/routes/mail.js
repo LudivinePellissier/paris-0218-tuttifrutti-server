@@ -162,6 +162,40 @@ const LAWYER_ACCOUNT_CONFIRMATION = link => ({
     <p>Merci,<br />L’équipe de LITTA</p>
   `)
 })
+const STUDENT_MESSAGE_TO_LAWYER = (missionId, lawyer, message) => ({
+  subject: `Mission n°${missionId} / Message pour l'étudiant`,
+  text: `
+    Admin,
+
+    Pour la mission n°${missionId}, l'étudiant ${message.student} souhaite envoyer le message ci-dessous à :
+    ${lawyer.cabinet}
+    ${lawyer.email}
+
+    Objet :
+    ${message.objet}
+
+    Message :
+    ${message.message}
+  `,
+  html: htmlLayout(`
+    <p>Admin,</p>
+    <p>Pour la mission n°${missionId}, l'étudiant ${message.student} souhaite envoyer le message ci-dessous à :
+    <br>
+    <br/>
+    ${lawyer.cabinet}
+    <br/>
+    ${lawyer.email}
+    <br/>
+    <br/>
+    Objet :
+    <br/>${message.objet}
+    <br/>
+    <br />
+    Message :
+    <br />
+    ${message.message}</p>
+  `)
+})
 
 const LAWYER_MESSAGE_TO_STUDENT = (missionId, student, message) => ({
   subject: `Mission n°${missionId} / Message pour l'étudiant`,
@@ -287,6 +321,7 @@ module.exports = {
     LAWYER_MESSAGE_TO_STUDENT,
     LAWYER_REPORT_PROBLEM_TO_ADMIN,
     STUDENT_REPORT_PROBLEM_TO_ADMIN,
+    STUDENT_MESSAGE_TO_LAWYER,
   },
   send,
 }
