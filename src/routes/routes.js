@@ -5,6 +5,7 @@ const FileModel = require('../models/file.js')
 const MissionModel = require('../models/mission.js')
 const StudentModel = require('../models/student.js')
 const AdminModel = require('../models/admin.js')
+const MessageModel = require('../models/message.js')
 const bcrypt = require('bcrypt-promise')
 const jwt = require('jsonwebtoken')
 const nodemailer = require('nodemailer')
@@ -497,6 +498,7 @@ router.get('/allmissions', (req, res, next) => {
 
 // GET ONE CURRENT MISSION
 router.get('/missions/:missionId', (req, res, next) => {
+  console.log(req.params.missionId)
   MissionModel
     .findById(req.params.missionId)
     .then(mission => res.json(mission))
@@ -527,20 +529,48 @@ router.put('/missions/:missionId', (req, res, next) => {
 })
 
 // SEND MESSAGE TO STUDENT
-router.post('/missions/:missionId/sendmessagetostudent', async (req, res, next) => {
-  const messageContent = req.body.messageContent
-  const missionId = messageContent.missionId.slice(-5)
+router.post('/missions/sendmessage', async (req, res, next) => {
+  const { message } = req.body
+  console.log(message)
+  const newMessage = new MessageModel(message)
 
-  StudentModel.findOne({ _id: messageContent.studentId })
-    .then(student => {
-      const options = {
-        to: LITTA_ADMIN_EMAIL,
-        ...mail.templates.LAWYER_MESSAGE_TO_STUDENT(missionId, student, messageContent)
-      }
-
-      return mail.send(options)
+  newMessage
+    .save()
+    .then(message =>{ 
+      console.log(message)
+      res.json(message)
     })
-    .then(res.json("ok"))
+    .catch(next)
+
+  // const messageContent = req.body.messageContent
+  // const missionId = messageContent.missionId.slice(-5)
+
+  // StudentModel.findOne({ _id: messageContent.studentId })
+  //   .then(student => {
+  //     const options = {
+  //       to: LITTA_ADMIN_EMAIL,
+  //       ...mail.templates.LAWYER_MESSAGE_TO_STUDENT(missionId, student, messageContent)
+  //     }
+
+  //     return mail.send(options)
+  //   })
+  //   .then(res.json("ok"))
+  //   .catch(next)
+})
+
+// GET MESSAGES ON MISSION PAGE
+
+router.get('/missions/:missionId/messages', (req, res, next) => {
+  console.log(req.params.missionId)
+  const missionId = req.params.missionId
+  MessageModel
+    .find()
+    .then(messages => {
+      console.log('mess', messages)
+      return messages.filter(message => message.missionId === missionId)})
+    .then(messagesByMissionId => {
+      console.log(messagesByMissionId)
+      res.json(messagesByMissionId)})
     .catch(next)
 })
 
@@ -758,7 +788,6 @@ router.post('/student/missionsfiltered', (req, res, next) => {
     .then(missions => res.json(missions.filter(mission => mission.finished === false).filter(mission => mission.student === student)))
     .catch(next)
 })
-
 
 // router.post('/allstudents', async(req, res, next) => {
 //    console.log(req.body)
