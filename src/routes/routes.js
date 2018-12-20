@@ -87,29 +87,7 @@ router.post('/download', async (req, res, next) => {
   })
 })
 
-// DELETE ONE FILE
-router.delete('/delete/:fileId', (req, res, next) => {
-  const fileId = req.params.fileId
-  FileModel
-    .findByIdAndRemove(fileId)
-    .then(async () => {
-      const missions = await MissionModel.find()
-      for (const mission of missions) {
-        const missionToUpdate = { _id: mission.id}
-        if (mission.filesFromLawyer.find(file => file.id === fileId) !== undefined) {
-          const filesFromLawyerUpdated = mission.filesFromLawyer.filter(file => file.id !== fileId)
-          await MissionModel.findOneAndUpdate(missionToUpdate, {filesFromLawyer: filesFromLawyerUpdated})
-          res.end()
-        }
-        if (mission.filesFromStudent.find(file => file.id === fileId) !== undefined) {
-          const filesFromStudentUpdated = mission.filesFromStudent.filter(file => file.id !== fileId)
-          await MissionModel.findOneAndUpdate(missionToUpdate, {filesFromStudent: filesFromStudentUpdated})
-          res.end()
-        }
-      }
-    })
-    .catch(next)
-})
+
 
 // POST Registration Admin
 
@@ -553,6 +531,7 @@ router.put('/missions/:missionId', (req, res, next) => {
 // SEND MESSAGE TO STUDENT
 router.post('/missions/sendmessage', async (req, res, next) => {
   const { message } = req.body
+  console.log(message)
   const newMessage = new MessageModel(message)
 
   newMessage
@@ -587,8 +566,10 @@ router.get('/missions/:missionId/messages', (req, res, next) => {
   MessageModel
     .find()
     .then(messages => {
+      console.log('mess', messages)
       return messages.filter(message => message.missionId === missionId)})
     .then(messagesByMissionId => {
+      console.log(messagesByMissionId)
       res.json(messagesByMissionId)})
     .catch(next)
 })
