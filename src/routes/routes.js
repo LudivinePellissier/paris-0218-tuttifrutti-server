@@ -554,6 +554,7 @@ router.put('/missions/:missionId', (req, res, next) => {
 // SEND MESSAGE TO STUDENT
 router.post('/missions/sendmessage', async (req, res, next) => {
   const { message } = req.body
+  console.log(message)
   const newMessage = new MessageModel(message)
 
   newMessage
@@ -588,8 +589,10 @@ router.get('/missions/:missionId/messages', (req, res, next) => {
   MessageModel
     .find()
     .then(messages => {
+      console.log('mess', messages)
       return messages.filter(message => message.missionId === missionId)})
     .then(messagesByMissionId => {
+      console.log(messagesByMissionId)
       res.json(messagesByMissionId)})
     .catch(next)
 })
