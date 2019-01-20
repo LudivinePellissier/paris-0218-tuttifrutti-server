@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+// const bcrypt = require('bcrypt')
 
 let avocatSchema = new mongoose.Schema({
   email: {
@@ -54,5 +55,21 @@ let avocatSchema = new mongoose.Schema({
     required: true
   }
 })
+
+// hashing a password before saving it to the database
+  // => transféré sur le fichier des routes
+
+
+// avocatSchema.pre('save', function (next) {
+//   console.log('test')
+//   let avocat = this
+//   bcrypt.hash(avocat.password, 16, function (err, hash) {
+//     if (err) {
+//       return next(err)
+//     }
+//     avocat.password = hash
+//     next()
+//   })
+// })
 
 module.exports = mongoose.model('Avocat', avocatSchema)
