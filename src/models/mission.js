@@ -42,4 +42,5 @@ let missionSchema = new mongoose.Schema({
   }
 })
 
+
 module.exports = mongoose.model('Mission', missionSchema)
