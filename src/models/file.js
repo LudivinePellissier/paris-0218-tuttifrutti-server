@@ -8,6 +8,7 @@ let fileSchema = new mongoose.Schema({
   },
   missionId: {
     type: Number,
+    // required: true
   },
   studentId: {
     type: Number
