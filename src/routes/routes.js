@@ -33,6 +33,7 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 5 * 10 ** 6 }, // 5mo
   fileFilter: function (req, file, cb) {
+    console.log(file)
     if (!file.originalname.toLowerCase().match(/\.(pdf|jpeg|jpg|doc|docx|odt)$/)) {
       return cb(Error('.pdf, .doc/docx, .odt, .jpg/jpeg uniquement'))
     }
@@ -109,12 +110,12 @@ router.delete('/delete/:fileId', (req, res, next) => {
 // POST Registration Admin
 
 router.post('/signupadmin', async (req, res, next) => {
-  const { user } = req.body
+  const user = req.body
   const newAdmin = await new AdminModel(user)
   newAdmin.password = await bcrypt.hash(newAdmin.password, 16)
 
   newAdmin.save()
-    .then(res.json('ok'))
+    .then(res.json('New admin created'))
     .then(async newuser => {
       const user = await AdminModel.findOne({ email: newuser.email })
       const link = `${hostUrl}/confirmationadmin/${user._id}`
@@ -132,12 +133,12 @@ router.post('/signupadmin', async (req, res, next) => {
 // POST Registration Student
 
 router.post('/regstudent', async (req, res, next) => {
-  const { user } = req.body
+  const user = req.body
   const newStudent = await new StudentModel(user)
   newStudent.password = await bcrypt.hash(newStudent.password, 16)
 
   newStudent.save()
-    .then(res.json('ok'))
+    .then(res.json('New student created'))
     .then(async newuser => {
       const user = await StudentModel.findOne({ email: newuser.email })
       const link = `${hostUrl}/confirmationstudent/${user._id}`
@@ -156,12 +157,14 @@ router.post('/regstudent', async (req, res, next) => {
 
 
 router.post('/reg', async (req, res, next) => {
-  const { user } = req.body
+  const user = req.body
+  console.log(user)
   const newAvocat = await new AvocatModel(user)
   newAvocat.password = await bcrypt.hash(newAvocat.password, 16)
+  console.log(newAvocat)
 
   newAvocat.save()
-    .then(res.json('ok'))
+    .then(res.json('New lawyer created'))
     .then(async newuser => {
       const user = await AvocatModel.findOne({ email: newuser.email })
       const link = `${hostUrl}/confirmationlawyer/${user._id}`
@@ -434,7 +437,7 @@ const sendNewMissionToAdmin = (mission) => {
 
 // Create mission
 router.post('/missions', function (req, res, next) {
-  const { mission } = req.body
+  const mission = req.body
   const newMission = new MissionModel(mission)
 
   newMission

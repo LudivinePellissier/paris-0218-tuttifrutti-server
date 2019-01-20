@@ -26,19 +26,21 @@ let missionSchema = new mongoose.Schema({
     required: true
   },
   author: {
-    type: String
+    type: String,
+    required: true
   },
   student: {
-    type: String
+    type: String,
   },
   finished: {
-    type: Boolean
+    type: Boolean,
+    required: true
   },
   filesFromLawyer: {
-    type: Array
+    type: Array,
   },
   filesFromStudent: {
-    type: Array
+    type: Array,
   }
 })
 
