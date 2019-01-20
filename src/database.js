@@ -1,5 +1,5 @@
 const mongoose = require('mongoose')
-const mongodbUri = process.env.MONGODB_URI || 'mongodb://root@localhost/tutti-frutti'
+const mongodbUri = process.env.MONGODB_URI || 'mongodb://root@localhost/litta'
 
 class Database {
   constructor () {
