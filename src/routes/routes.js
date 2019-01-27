@@ -12,8 +12,6 @@ const nodemailer = require('nodemailer')
 const bodyParser = require('body-parser')
 const multer = require('multer')
 const fs = require('fs')
-// const uuidv4 = require('uuid/v4')
-// const path = require('path')
 const mail = require('./mail')
 
 const hostUrl = process.env.HOST_URL || 'http://localhost:3000'
@@ -35,7 +33,6 @@ const upload = multer({
   storage: storage,
   limits: { fileSize: 5 * 10 ** 6 }, // 5mo
   fileFilter: function (req, file, cb) {
-    console.log(file)
     if (!file.originalname.toLowerCase().match(/\.(pdf|jpeg|jpg|doc|docx|odt)$/)) {
       return cb(Error('.pdf, .doc/docx, .odt, .jpg/jpeg uniquement'))
     }
@@ -53,7 +50,6 @@ router.use(bodyParser.urlencoded({ extended: true }))
 
 // Upload  de fichier by lawyer
 router.post('/upload', upload.single('selectedFile'), async (req, res) => {
-  console.log(req.file)
   const newFile = new FileModel()
   let newFileId = ''
   newFile.file.data = fs.readFileSync(req.file.path)
@@ -79,9 +75,7 @@ router.use(function (err, req, res, next) {
 
 // GET FILE FROM DB
 router.post('/download', async (req, res, next) => {
-  console.log(req.body)
   FileModel.findOne({ _id: req.body.id}, (err, file) => {
-    console.log(file)
     res.set('Content-Type', file.file.contentType)
     res.send(file.file)
   })
@@ -194,7 +188,6 @@ router.get('/confirmationadmin/:uuid', async (req, res) => {
 // Mail Confirm Get Advocat
 
 router.get('/confirmationlawyer/:uuid', async (req, res) => {
-  console.log(req.params.uuid)
   const query = await { _id: `${req.params.uuid}` }
   await AvocatModel.findOneAndUpdate(query, { activated: true })
     .catch(err => { if (err) res.json('invalid user') })
@@ -205,7 +198,6 @@ router.get('/confirmationlawyer/:uuid', async (req, res) => {
 
 router.get('/confirmationstudent/:uuid', async (req, res) => {
 
-  console.log(req.params.uuid)
   const query = await { _id: `${req.params.uuid}` }
   await StudentModel.findOneAndUpdate(query, { activated: true })
     .catch(err => { if (err) res.json('invalid user') })
@@ -217,7 +209,6 @@ router.get('/confirmationstudent/:uuid', async (req, res) => {
 
 router.post('/loginadmin', async (req, res) => {
   const user = await AdminModel.findOne({ email: req.body.creds.email })
-  console.log(user)
   if (user === null) {
     return res.json('auth failed')
   }
@@ -241,7 +232,6 @@ router.post('/loginadmin', async (req, res) => {
 
 router.post('/loginstudent', async (req, res, next) => {
   const user = await StudentModel.findOne({email: req.body.creds.email})
-  console.log(user)
   if (user === null) {
     return res.json('auth failed')
  }
@@ -268,7 +258,6 @@ router.post('/loginstudent', async (req, res, next) => {
 
 router.post('/login', async (req, res, next) => {
   const user = await AvocatModel.findOne({ email: req.body.creds.email })
-  console.log(user)
   if (user === null) {
     return res.json('auth failed')
   }
@@ -299,7 +288,7 @@ router.get('/secure', (req, res, next) => {
     .authorization
     .split(' ')[1]
   jwt.verify(token, jwtSecret, function (err, decoded) {
-    console.log('token verify')
+    console.log('Token verified')
     if (err) {
       console.log(err)
       res.json('notlogged')
@@ -313,27 +302,21 @@ router.get('/secure', (req, res, next) => {
 // POST to get info admin
 
 router.post('/infoadmin', async (req, res, next) => {
-  console.log(req.body.decoded.id)
   const user = await AdminModel.findOne({ _id: req.body.decoded.id })
-  console.log(user)
   res.json(user)
 })
 
 // EDIT ADMIN INFO
 router.put('/infoadmin', async (req, res, next) => {
   const update = req.body.user
-  console.log(update)
 
   if (update.password && update.password !== '') {
-    console.log('password modifié', update)
     update.password = await bcrypt.hash(update.password, 16)
-    console.log('password modifié apres crypt', update)
 
     AdminModel.findByIdAndUpdate({
       _id: update.id
     }, { $set: update }).then((admin) => res.json(admin)).catch(next)
   } else {
-    console.log('password pas modifié', update)
     AdminModel.findByIdAndUpdate({
       _id: update.id
     }, {
@@ -343,7 +326,6 @@ router.put('/infoadmin', async (req, res, next) => {
           lastName: update.lastName
         }
       })
-      .then(admin => console.log(admin))
       .then(admin => res.json(admin))
       .catch(next)
   }
@@ -352,27 +334,21 @@ router.put('/infoadmin', async (req, res, next) => {
 // POST to get info avocat
 
 router.post('/infolawyer', async (req, res, next) => {
-  console.log(req.body.decoded.id)
   const user = await AvocatModel.findOne({ _id: req.body.decoded.id })
-  console.log(user)
   res.json(user)
 })
 
 // EDIT LAWYER INFO
 router.put('/infolawyer', async (req, res, next) => {
   const update = req.body.user
-  console.log(update)
 
   if (update.password && update.password !== '') {
-    console.log('password modifié', update)
     update.password = await bcrypt.hash(update.password, 16)
-    console.log('password modifié apres crypt', update)
 
     AvocatModel.findByIdAndUpdate({
       _id: update.id
     }, { $set: update }).then((lawyer) => res.json(lawyer)).catch(next)
   } else {
-    console.log('password pas modifié', update)
     AvocatModel.findByIdAndUpdate({
       _id: update.id
     }, {
@@ -389,7 +365,6 @@ router.put('/infolawyer', async (req, res, next) => {
           field: update.field
         }
       })
-      .then(lawyer => console.log(lawyer))
       .then(lawyer => res.json(lawyer))
       .catch(next)
   }
@@ -398,7 +373,7 @@ router.put('/infolawyer', async (req, res, next) => {
 // POST to get student info
 router.post('/infostudent', async (req, res, next) => {
   await StudentModel.findOne({ _id: req.body.decoded.id })
-    .then(student => {console.log(student)
+    .then(student => {
       res.json(student)})
     .catch(next)
 })
@@ -412,18 +387,14 @@ router.post('/studentfirstname', async (req, res, next) => {
 // EDIT STUDENT INFO
 router.put('/infostudent', async (req, res, next) => {
   const update = req.body.user
-  console.log(update)
 
   if (update.password && update.password !== '') {
-    console.log('password modifié', update)
     update.password = await bcrypt.hash(update.password, 16)
-    console.log('password modifié apres crypt', update)
 
     StudentModel.findByIdAndUpdate({
       _id: update.id
     }, { $set: update }).then((student) => res.json(student)).catch(next)
   } else {
-    console.log('password pas modifié', update)
     StudentModel.findByIdAndUpdate({
       _id: update.id
     }, {
@@ -436,7 +407,6 @@ router.put('/infostudent', async (req, res, next) => {
           field: update.field
         }
       })
-      .then(student => console.log(student))
       .then(student => res.json(student))
       .catch(next)
   }
@@ -491,10 +461,10 @@ router.get('/accept/:mission/:uuid', async (req, res) => {
   const queryStudent = await { _id: `${req.params.uuid}` }
   const queryMission = await { _id: `${req.params.mission}` }
   await MissionModel.find(queryMission, async (err, result) => {
-    if (result[0].student === '') {
+    if (result[0].student === null) {
       await MissionModel.findOneAndUpdate(queryMission, { student: queryStudent })
       await StudentModel.findOneAndUpdate(queryStudent, { $push: { missions: queryMission } })
-      res.send('Ok')
+      res.send('Attributed')
     } else {
       res.send('Not avalaible')
     }
@@ -519,9 +489,30 @@ router.get('/allmissions', (req, res, next) => {
     .catch(next)
 })
 
+// GET ONE CURRENT MISSION - Admin Part
+router.get('/admin/missions/:missionId', (req, res, next) => {
+  MissionModel
+    .findById(req.params.missionId)
+    .then(async (mission) => {
+      const missionWithAdditionalDetails = { ...mission.toObject(), }
+
+      const authorDatas = await AvocatModel.findById(mission.author)
+      missionWithAdditionalDetails.cabinet = authorDatas.cabinet
+
+      if (mission.student) {
+        const studentDatas = await StudentModel.findById(mission.student)
+        missionWithAdditionalDetails.studentFirstName = studentDatas.firstName
+      } else {
+        missionWithAdditionalDetails.studentFirstName = null
+      }
+
+     return res.json(missionWithAdditionalDetails)
+    })
+    .catch(next)
+})
+
 // GET ONE CURRENT MISSION
 router.get('/missions/:missionId', (req, res, next) => {
-  console.log(req.params.missionId)
   MissionModel
     .findById(req.params.missionId)
     .then(mission => res.json(mission))
@@ -554,13 +545,11 @@ router.put('/missions/:missionId', (req, res, next) => {
 // SEND MESSAGE TO STUDENT
 router.post('/missions/sendmessage', async (req, res, next) => {
   const { message } = req.body
-  console.log(message)
   const newMessage = new MessageModel(message)
 
   newMessage
     .save()
     .then(message =>{ 
-      console.log(message)
       res.json(message)
     })
     .catch(next)
@@ -584,15 +573,12 @@ router.post('/missions/sendmessage', async (req, res, next) => {
 // GET MESSAGES ON MISSION PAGE
 
 router.get('/missions/:missionId/messages', (req, res, next) => {
-  console.log(req.params.missionId)
   const missionId = req.params.missionId
   MessageModel
     .find()
     .then(messages => {
-      console.log('mess', messages)
       return messages.filter(message => message.missionId === missionId)})
     .then(messagesByMissionId => {
-      console.log(messagesByMissionId)
       res.json(messagesByMissionId)})
     .catch(next)
 })
@@ -604,7 +590,6 @@ router.post('/missions/:missionId/sendmessagetolawyer', async (req, res, next) =
 
   AvocatModel.findOne({ _id: messageContent.lawyerId })
     .then(lawyer => {
-      console.log(lawyer)
       const options = {
         to: LITTA_ADMIN_EMAIL,
         ...mail.templates.STUDENT_MESSAGE_TO_LAWYER(missionId, lawyer, messageContent)
@@ -621,7 +606,6 @@ router.post('/missions/:missionId/sendmessagetolawyer', async (req, res, next) =
 router.put('/missions/:missionId/status', (req, res, next) => {
 
   const status = req.body
-  console.log(status)
 
   MissionModel
     .findByIdAndUpdate(req.params.missionId, { $set: status })
@@ -658,7 +642,6 @@ router.post('/oldmissionsfiltered', (req, res, next) => {
           ...mission.toObject(),
           studentName: studentFirstName
         }
-        console.log(oldmission)
         return oldmission
       })
     )
@@ -688,7 +671,6 @@ router.post('/student/oldmissionsfiltered', (req, res, next) => {
           ...mission.toObject(),
           cabinet: lawyerCabinetName
         }
-        console.log(oldmission)
         return oldmission
       })
     )
@@ -701,12 +683,10 @@ router.post('/student/oldmissionsfiltered', (req, res, next) => {
 router.post('/missions/:missionId/reportproblem', async (req, res, next) => {
   const messageContent = req.body.messageContent
   const missionId = messageContent.missionId.slice(-5)
-  console.log(messageContent)
 
   if (messageContent.type === 'student_about_lawyer') {
     AvocatModel.findOne({ _id: req.body.messageContent.lawyerId })
     .then(lawyer => {
-      console.log(lawyer)
       const options = {
         to: LITTA_ADMIN_EMAIL,
         ...mail.templates.STUDENT_REPORT_PROBLEM_TO_ADMIN(missionId, lawyer, messageContent)
@@ -746,7 +726,6 @@ router.get('/alllawyers', (req, res, next) => {
 
 router.get('/getLawyerInfos/:lawyerId', (req, res, next) => {
   const lawyerId = req.params.lawyerId
-  console.log(lawyerId)
   AvocatModel
     .findById({ _id: lawyerId })
     .then(user => res.json({cabinet: user.cabinet}))
@@ -756,9 +735,7 @@ router.get('/getLawyerInfos/:lawyerId', (req, res, next) => {
 // CHANGE STATUS OF A LAWYER
 
 router.post('/alllawyers', async (req, res, next) => {
-  console.log(req.body)
   const update = req.body.user
-  console.log(update)
   await AvocatModel.findByIdAndUpdate(update._id,
     { $set: update })
     .then((user) => res.json(user))
@@ -785,7 +762,6 @@ router.get('/allstudents', (req, res, next) => {
 // CHANGE STATUS OF A STUDENT
 
 router.post('/allstudents', async (req, res, next) => {
-  console.log(req.body)
   const update = req.body.user
   await StudentModel.findByIdAndUpdate(update._id,
     { $set: update })
@@ -811,14 +787,5 @@ router.post('/student/missionsfiltered', (req, res, next) => {
     .then(missions => res.json(missions.filter(mission => mission.finished === false).filter(mission => mission.student === student)))
     .catch(next)
 })
-
-// router.post('/allstudents', async(req, res, next) => {
-//    console.log(req.body)
-//    console.log(req.body.user.email)
-//    const query = await {uuid: `${req.params.uuid}`}
-//    console.log(query)
-//    await StudentModel.findOneAndUpdate(query, {activated: true})
-//    res.json('testing');
-// })
 
 module.exports = router

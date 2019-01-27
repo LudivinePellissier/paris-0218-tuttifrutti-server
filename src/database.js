@@ -12,7 +12,7 @@ class Database {
         console.log(`Database connection successful - '${mongodbUri}'`)
       })
       .catch(err => {
-        console.error('Database connection error')
+        console.error('Database connection fail')
         console.log(err)
       })
   }

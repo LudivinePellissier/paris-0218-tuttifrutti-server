@@ -14,10 +14,7 @@ app.use((req, res, next) => {
 })
 
 app.use((req, res, next) => {
-  console.log(`${req.method} ${req.url}`, {
-    cookie: req.headers.cookie,
-    token: req.headers.authorization
-  })
+  console.log(`${req.method} ${req.url}`)
   next()
 })
 
@@ -27,9 +24,9 @@ app.use(bodyParser.urlencoded({extended: false}))
 // ROUTES
 
 app.get('/', (req, res) => {
-  res.json('A SUCCESFUL FETCH on /')
+  res.json('Welcome on LITTA !')
 })
 
 app.use('/', routes)
 
-app.listen(port, () => console.log(`server listening on port: ${port}`))
+app.listen(port, () => console.log(`Server is listening on port: ${port}`))
