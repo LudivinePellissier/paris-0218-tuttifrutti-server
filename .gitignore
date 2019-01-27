@@ -145,4 +145,7 @@ GitHub.sublime-settings
 .history
 
 
+# Files uploaded for test
+/tmp
+
 # End of https://www.gitignore.io/api/node,linux,macos,sublimetext,visualstudiocode
